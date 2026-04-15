@@ -1,7 +1,10 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from app.helpers.exceptions import ExceptionHandlers
-
+from app.helpers.config import (
+    API_VERSION,
+    API_BASE_NAME
+)
 
 
 app = FastAPI()
