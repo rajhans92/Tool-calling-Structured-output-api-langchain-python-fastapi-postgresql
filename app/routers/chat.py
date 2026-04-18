@@ -11,8 +11,8 @@ router = APIRouter(prefix="/toolcalling", tags=["toolcalling"])
 async def tool_calling(request :RequestBody, getHeaderDetail: HeaderDetail = Depends(get_header_details)):
     try:
         structuredReturn = llmModel.parseUserData(request.message)
-        toolDataReturn = llmModel.executeTool(structuredReturn)
-        llmCallReturn = llmModel.callLLM(toolDataReturn)
+        toolDataReturn = await llmModel.executeTool(structuredReturn)
+        llmCallReturn = llmModel.callLLM(request.message,toolDataReturn)
         return {
             "status": "success",
             "message": f"T{llmCallReturn}"
