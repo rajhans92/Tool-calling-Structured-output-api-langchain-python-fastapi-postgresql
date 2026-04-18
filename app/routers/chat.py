@@ -18,4 +18,5 @@ async def tool_calling(request :RequestBody, getHeaderDetail: HeaderDetail = Dep
             "message": f"T{llmCallReturn}"
         }
     except Exception as e:
+        print("Error in tool calling: ", str(e))
         raise HTTPException( status_code=500, detail="The AI service failed to process the request. Please try again later." )

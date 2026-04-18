@@ -1,7 +1,8 @@
 from langchain.chat_models import init_chat_model
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
+from langchain_core.tools import tool
 from dotenv import load_dotenv
-from app.helper.config import (
+from app.helpers.config import (
     LLM_MODEL
 )
 import asyncio
@@ -15,12 +16,13 @@ class AIController:
             "search_hotels": self.search_hotels,
             "get_weather": self.get_weather
         }
-        self.model_with_tools = self.model.with_tools(self.tools)
-        self.extractor = self.model.with_structured_output(ExecutionPlan)
-
+        # self.model_with_tools = self.model.bind_tools(self.tools)
+        self.extractor = self.model.with_structured_output(ExecutionPlan, method="function_calling")
+    
     async def search_hotels(self, city: str, budget: int):
+        """Search hotels in a given city within a budget."""
         return {"hotels": [f"{city} Hotel A", f"{city} Hotel B"], "budget": budget}
-
+    
     async def get_weather(self, city: str):
         return {"city": city, "weather": "sunny"}
     
@@ -37,15 +39,15 @@ class AIController:
                     - get_weather(city)
 
                     Return ONLY JSON in this format:
-                    {
+                    {{
                     "execution_plan": [
-                        {
+                        {{
                         "tool": "tool_name",
-                        "args": {},
+                        "args": {{}},
                         "depends_on": []
-                        }
+                        }}
                     ]
-                    }
+                    }}
 
                     User Query: {user_input}
                     """
