@@ -5,7 +5,7 @@ from app_without_structure_output.helpers.config import (
     API_VERSION,
     API_BASE_NAME
 )
-from app.routers import chat
+from app_without_structure_output.routers import chat
 
 
 app = FastAPI()

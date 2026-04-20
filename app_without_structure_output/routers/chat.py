@@ -12,6 +12,7 @@ async def tool_calling(request :RequestBody, getHeaderDetail: HeaderDetail = Dep
     try:
         structuredReturn = llmModel.parseUserData(request.message)
         toolDataReturn = await llmModel.executeTool(structuredReturn)
+        print("Tool Data Return: ", toolDataReturn)  # Debugging line to see the tool data return
         llmCallReturn = llmModel.callLLM(request.message,toolDataReturn)
         return {
             "status": "success",

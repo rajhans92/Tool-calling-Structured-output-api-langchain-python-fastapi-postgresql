@@ -1,5 +1,5 @@
 from langchain.chat_models import init_chat_model
-from langchain_core.prompts import PromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.tools import tool
 from dotenv import load_dotenv
 from app_without_structure_output.helpers.config import (
@@ -12,68 +12,55 @@ load_dotenv()
 class AIController:
     def __init__(self):
         self.model = init_chat_model(LLM_MODEL)
-        self.tools = {
-            "search_hotels": self.search_hotels,
-            "get_weather": self.get_weather
-        }
-        # self.model_with_tools = self.model.bind_tools(self.tools)
-        self.extractor = self.model.with_structured_output(ExecutionPlan, method="function_calling")
+        self.tools = [self.search_hotels, self.get_weather]
+        self.toolSet = {"search_hotels":self.search_hotels, "get_weather":self.get_weather}
+        self.model_with_tools = self.model.bind_tools(self.tools)
     
-    async def search_hotels(self, city: str, budget: int):
+    @tool
+    async def search_hotels(city: str, budget: int) -> dict:
         """Search hotels in a given city within a budget."""
         return {"hotels": [f"{city} Hotel A", f"{city} Hotel B"], "budget": budget}
-    
-    async def get_weather(self, city: str):
+
+
+    @tool
+    async def get_weather(city: str) -> dict:
+        """Get current weather for a city."""
         return {"city": city, "weather": "sunny"}
     
     def parseUserData(self, message: str):
         try:
-            planner_prompt = PromptTemplate(
-                input_variables=["user_input"],
-                template="""
-                    You are an AI planning agent.
+            prompt = ChatPromptTemplate.from_messages([
+                ("system", "You are an AI planning agent. Decide which tools to call based on user query."),
+                ("user", "{user_input}")
+            ])
 
-                    Available tools:
-                    - search_flights(source, destination, date)
-                    - search_hotels(city, budget)
-                    - get_weather(city)
+            chain = prompt | self.model_with_tools
 
-                    Return ONLY JSON in this format:
-                    {{
-                    "execution_plan": [
-                        {{
-                        "tool": "tool_name",
-                        "args": {{}},
-                        "depends_on": []
-                        }}
-                    ]
-                    }}
+            response = chain.invoke({"user_input": message})
+            # print("LLM Response: ", response.tool_calls)  # Debugging line to see the raw response
+            return response.tool_calls  # contains tool_calls if any
 
-                    User Query: {user_input}
-                    """
-            )
-            prompt = planner_prompt.format(user_input=message)
-            plan: ExecutionPlan = self.extractor.invoke(prompt)
-            return plan
         except Exception as e:
             raise Exception("Error parsing user data: " + str(e))
 
-    async def executeTool(self, plan: ExecutionPlan):
+    async def executeTool(self, plan):
         tasks = []
+        if not plan:
+            return {}
+        else:
+            for step in plan:
+                tool_name = step["name"]
+                args = step["args"]
 
-        for step in plan.execution_plan:
-            tool_name = step.tool
-            args = step.args
+                func = self.toolSet.get(tool_name)
+                if not func:
+                    continue
 
-            func = self.tools.get(tool_name)
-            if not func:
-                continue
+                tasks.append(func.ainvoke(args))
 
-            tasks.append(func(**args))
+            results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-
-        return results
+            return results
 
     def callLLM(self, userQuery, toolData: dict):
         propmpt = PromptTemplate(
