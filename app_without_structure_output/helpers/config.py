@@ -1,0 +1,11 @@
+from dotenv import load_dotenv
+import os
+load_dotenv()
+
+API_BASE_NAME= os.getenv("API_BASE_NAME")
+API_VERSION= os.getenv("API_VERSION")
+JWT_SECRET_KEY= os.getenv("JWT_SECRET_KEY")
+JWT_ALGORITHM= os.getenv("JWT_ALGORITHM")
+JWT_TOKEN_TIME_HOURS= os.getenv("JWT_TOKEN_TIME_HOURS")
+LLM_MODEL= os.getenv("LLM_MODEL")
+OPENAI_API_KEY= os.getenv("OPENAI_API_KEY")
