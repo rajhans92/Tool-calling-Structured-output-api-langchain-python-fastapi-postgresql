@@ -2,11 +2,11 @@ from langchain.chat_models import init_chat_model
 from langchain_core.prompts import PromptTemplate
 from langchain_core.tools import tool
 from dotenv import load_dotenv
-from app.helpers.config import (
+from app_without_structure_output.helpers.config import (
     LLM_MODEL
 )
 import asyncio
-from app.schema.toolCalling import ExecutionPlan 
+from app_without_structure_output.schema.toolCalling import ExecutionPlan 
 load_dotenv()
 
 class AIController:

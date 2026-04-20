@@ -1,5 +1,5 @@
 from fastapi import Header, HTTPException
-from app.schema.toolCalling import HeaderDetail
+from app_without_structure_output.schema.toolCalling import HeaderDetail
 
 def get_header_details(header: HeaderDetail= Header(...)):
     try:

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
-from app.schema.toolCalling import HeaderDetail, RequestBody
-from app.helpers.middleware import get_header_details
-from app.ai.aiController import AIController
+from app_without_structure_output.schema.toolCalling import HeaderDetail, RequestBody
+from app_without_structure_output.helpers.middleware import get_header_details
+from app_without_structure_output.ai.aiController import AIController
 
 llmModel = AIController()
 
